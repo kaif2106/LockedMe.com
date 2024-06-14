@@ -1,0 +1,21 @@
+Sprint 1: Initial Setup and Basic Functionality
+
+ - Set up the project structure and dependencies
+ - Implement the main menu and navigation
+ - Implement the functionality to list files in ascending order
+ - Implement the functionality to add new files to the "Data" directory
+
+Sprint 2: File Operations and User Experience
+
+ - Implement the functionality to delete files from the "Data" directory
+ - Implement the functionality to search for files in the "Data" directory
+ - Add case-insensitivity for adding new files
+ - Add case sensitivity for deleting files
+ - Enhance the user interface with a welcome screen and clear instructions
+
+Sprint 3: Refactoring and Optimization
+
+ - Refactor the code for better readability and maintainability
+ - Optimize the file operations by using appropriate data structures and algorithms
+ - Implement exception handling for better error management
+ - Perform testing and debugging
