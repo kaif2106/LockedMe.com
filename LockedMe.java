@@ -80,11 +80,11 @@ public class LockedMe {
                 displayBusinessOperationsMenu();
                 break;
             case 2:
-                // deleteFile();
+                deleteFile();
                 displayBusinessOperationsMenu();
                 break;
             case 3:
-                // searchFile();
+                searchFile();
                 displayBusinessOperationsMenu();
                 break;
             case 4:
@@ -134,6 +134,59 @@ public class LockedMe {
             } catch (IOException e) {
                 System.out.println("An error occurred while creating the file: " + e.getMessage());
             }
+        }
+    }
+
+    private static void deleteFile() {
+        System.out.println("Enter the name of the file to delete:");
+        String fileName = scanner.nextLine();
+
+        File directory = new File(DATA_DIRECTORY);
+        File[] files = directory.listFiles();
+
+        boolean fileFound = false;
+
+        if (files != null) {
+            for (File file : files) {
+                if (file.getName().equals(fileName)) {
+                    if (file.delete()) {
+                        System.out.println("File deleted successfully: " + file.getAbsolutePath());
+                    } else {
+                        System.out.println("Failed to delete the file.");
+                    }
+                    fileFound = true;
+                    break;
+                }
+            }
+
+            if (!fileFound) {
+                System.out.println("The file does not exist.");
+            }
+        } else {
+            System.out.println("The Data directory is empty.");
+        }
+    }
+
+    private static void searchFile() {
+        System.out.println("Enter the name of the file to search for:");
+        String fileName = scanner.nextLine();
+
+        File directory = new File(DATA_DIRECTORY);
+        File[] files = directory.listFiles();
+        List<String> fileNames = new ArrayList<>();
+
+        if (files != null) {
+            for (File file : files) {
+                fileNames.add(file.getName());
+            }
+
+            if (fileNames.contains(fileName)) {
+                System.out.println("File found: " + new File(DATA_DIRECTORY, fileName).getAbsolutePath());
+            } else {
+                System.out.println("The file does not exist in the Data directory.");
+            }
+        } else {
+            System.out.println("The Data directory is empty.");
         }
     }
 }
