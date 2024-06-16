@@ -1,20 +1,18 @@
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class LockedMe {
     private static final String CURRENT_DIRECTORY = System.getProperty("user.dir");
-    private static final String DATA_DIRECTORY = CURRENT_DIRECTORY + "/Data";
+    private static final String DATA_DIRECTORY_PATH = CURRENT_DIRECTORY + "/Data";
+    private static final File DATA_DIRECTORY = new File(DATA_DIRECTORY_PATH);
     private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
         displayWelcomeScreen();
         createDataDirectory();
-        displayInitialMenu();
+        displayMainMenu();
     }
 
     private static void displayWelcomeScreen() {
@@ -31,25 +29,23 @@ public class LockedMe {
     }
 
     private static void createDataDirectory() {
-        File dataDir = new File(DATA_DIRECTORY);
-        if (!dataDir.exists()) {
-            dataDir.mkdir();
+        if (!DATA_DIRECTORY.exists()) {
+            DATA_DIRECTORY.mkdir();
         }
     }
 
-    private static void displayInitialMenu() {
+    private static void displayMainMenu() {
         System.out.println("Select an option:");
         System.out.println("1. List files in ascending order");
-        System.out.println("2. Business level operations");
+        System.out.println("2. Business-level operations");
         System.out.println("3. Exit");
 
-        int choice = scanner.nextInt();
-        scanner.nextLine(); 
+        int choice = getValidIntInput();
 
         switch (choice) {
             case 1:
                 listFilesInAscendingOrder();
-                displayInitialMenu();
+                displayMainMenu();
                 break;
             case 2:
                 displayBusinessOperationsMenu();
@@ -59,7 +55,7 @@ public class LockedMe {
                 System.exit(0);
             default:
                 System.out.println("Invalid choice. Please try again.");
-                displayInitialMenu();
+                displayMainMenu();
         }
     }
 
@@ -71,8 +67,7 @@ public class LockedMe {
         System.out.println("4. List files by last modified date");
         System.out.println("5. Back to main menu");
 
-        int choice = scanner.nextInt();
-        scanner.nextLine(); 
+        int choice = getValidIntInput();
 
         switch (choice) {
             case 1:
@@ -88,11 +83,11 @@ public class LockedMe {
                 displayBusinessOperationsMenu();
                 break;
             case 4:
-                // listFilesByLastModifiedDate();
+                listFilesByLastModifiedDate();
                 displayBusinessOperationsMenu();
                 break;
             case 5:
-                displayInitialMenu();
+                displayMainMenu();
                 break;
             default:
                 System.out.println("Invalid choice. Please try again.");
@@ -101,13 +96,11 @@ public class LockedMe {
     }
 
     private static void listFilesInAscendingOrder() {
-        File directory = new File(DATA_DIRECTORY);
-        File[] files = directory.listFiles();
+        File[] files = DATA_DIRECTORY.listFiles();
 
-        if (files != null) {
-            Arrays.sort(files); 
-
-            System.out.println("Files in the Data directory (" + DATA_DIRECTORY + ") in ascending order:");
+        if (files != null && files.length > 0) {
+            Arrays.sort(files);
+            System.out.println("Files in the Data directory (" + DATA_DIRECTORY_PATH + ") in ascending order:");
             for (File file : files) {
                 System.out.println(file.getName());
             }
@@ -118,75 +111,79 @@ public class LockedMe {
 
     private static void addNewFile() {
         System.out.println("Enter the name of the file to be added:");
-        String fileName = scanner.nextLine().toLowerCase(); 
+        String fileName = scanner.nextLine().trim().toLowerCase();
 
         File file = new File(DATA_DIRECTORY, fileName);
 
-        if (file.exists()) {
-            System.out.println("A file with the same name already exists. Cannot overwrite the existing file.");
-        } else {
-            try {
-                if (file.createNewFile()) {
-                    System.out.println("File created successfully: " + file.getAbsolutePath());
-                } else {
-                    System.out.println("Failed to create the file.");
-                }
-            } catch (IOException e) {
-                System.out.println("An error occurred while creating the file: " + e.getMessage());
+        try {
+            if (file.createNewFile()) {
+                System.out.println("File created successfully: " + file.getAbsolutePath());
+            } else {
+                System.out.println("A file with the same name already exists. Cannot overwrite the existing file.");
             }
+        } catch (IOException e) {
+            System.out.println("An error occurred while creating the file: " + e.getMessage());
         }
     }
 
     private static void deleteFile() {
         System.out.println("Enter the name of the file to delete:");
-        String fileName = scanner.nextLine();
+        String fileName = scanner.nextLine().trim();
 
-        File directory = new File(DATA_DIRECTORY);
-        File[] files = directory.listFiles();
+        File[] files = DATA_DIRECTORY.listFiles();
+        Optional<File> fileToDelete = Arrays.stream(files)
+                .filter(file -> file.getName().equals(fileName))
+                .findFirst();
 
-        boolean fileFound = false;
-
-        if (files != null) {
-            for (File file : files) {
-                if (file.getName().equals(fileName)) {
-                    if (file.delete()) {
-                        System.out.println("File deleted successfully: " + file.getAbsolutePath());
-                    } else {
-                        System.out.println("Failed to delete the file.");
-                    }
-                    fileFound = true;
-                    break;
-                }
+        if (fileToDelete.isPresent()) {
+            File file = fileToDelete.get();
+            if (file.delete()) {
+                System.out.println("File deleted successfully: " + file.getAbsolutePath());
+            } else {
+                System.out.println("Failed to delete the file.");
             }
+        } else {
+            System.out.println("The file does not exist.");
+        }
+    }
 
-            if (!fileFound) {
-                System.out.println("The file does not exist.");
+    private static void searchFile() {
+        System.out.println("Enter the name of the file to search for:");
+        String fileName = scanner.nextLine().trim();
+
+        File[] files = DATA_DIRECTORY.listFiles();
+        List<String> fileNames = Arrays.stream(files)
+                .map(File::getName)
+                .collect(Collectors.toList());
+
+        if (fileNames.contains(fileName)) {
+            System.out.println("File found: " + new File(DATA_DIRECTORY, fileName).getAbsolutePath());
+        } else {
+            System.out.println("The file does not exist in the Data directory.");
+        }
+    }
+
+    private static void listFilesByLastModifiedDate() {
+        File[] files = DATA_DIRECTORY.listFiles();
+
+        if (files != null && files.length > 0) {
+            Arrays.sort(files, Comparator.comparingLong(File::lastModified).reversed());
+            System.out.println("Files in the Data directory (" + DATA_DIRECTORY_PATH + ") ordered by last modified date:");
+            for (File file : files) {
+                System.out.println(file.getName() + " (Last Modified: " + new Date(file.lastModified()) + ")");
             }
         } else {
             System.out.println("The Data directory is empty.");
         }
     }
 
-    private static void searchFile() {
-        System.out.println("Enter the name of the file to search for:");
-        String fileName = scanner.nextLine();
-
-        File directory = new File(DATA_DIRECTORY);
-        File[] files = directory.listFiles();
-        List<String> fileNames = new ArrayList<>();
-
-        if (files != null) {
-            for (File file : files) {
-                fileNames.add(file.getName());
+    private static int getValidIntInput() {
+        while (true) {
+            try {
+                return Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a valid integer.");
             }
-
-            if (fileNames.contains(fileName)) {
-                System.out.println("File found: " + new File(DATA_DIRECTORY, fileName).getAbsolutePath());
-            } else {
-                System.out.println("The file does not exist in the Data directory.");
-            }
-        } else {
-            System.out.println("The Data directory is empty.");
         }
     }
 }
